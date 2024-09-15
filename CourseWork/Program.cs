@@ -19,7 +19,6 @@ builder.Services.AddInfrastructure(builder.Configuration).AddApplication();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => options.LoginPath = "/v1/users/auth");
 
-builder.Environment.IsDevelopment();
 builder.Services.AddAuthorization();
 
 builder.Services.AddSwaggerGen(options =>

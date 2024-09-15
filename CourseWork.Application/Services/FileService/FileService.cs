@@ -166,13 +166,24 @@ public class FileService(IFileRecordContext fileRecordContext, ISaveDbContext sa
     public async Task<(Stream, string fileName)> GetFile(Guid fileId, Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-
+        
         if (user is null)
         {
             throw new UserNotFoundException($"Пользователь с id: {userId} не найден");
         }
 
-        var file = await fileRecordContext.FileRecords.FirstOrDefaultAsync(record => record.Id == fileId && record.Owner.Id == user.Id);
+        var userRoles = await userManager.GetRolesAsync(user);
+        var userIsAdmin = userRoles.Contains(nameof(UserRoles.Admin));
+        FileRecord? file;
+        if (userIsAdmin)
+        {
+            file = await fileRecordContext.FileRecords.Include(record => record.Owner).FirstOrDefaultAsync(record => record.Id == fileId);
+        }
+        else
+        {
+            file = await fileRecordContext.FileRecords.FirstOrDefaultAsync(record => record.Id == fileId && record.Owner.Id == user.Id);
+        }
+
         if (file is null)
         {
             throw new FileNotFoundException();
@@ -180,10 +191,10 @@ public class FileService(IFileRecordContext fileRecordContext, ISaveDbContext sa
 
         if (file.FileType == FileType.Directory)
         {
-            throw new NotImplementedException();
+            throw new ArgumentException();
         }
 
-        var filePath = Path.Combine(Path.Combine(FilePath!, user.Id), file.Id.ToString());
+        var filePath = Path.Combine(Path.Combine(FilePath!, file.Owner.Id), file.Id.ToString());
         
         await using var encryptedFileStream = File.OpenRead(filePath);
         var result = await FileEncryptor.DecryptFile(encryptedFileStream, _key);
@@ -258,6 +269,4 @@ public class FileService(IFileRecordContext fileRecordContext, ISaveDbContext sa
 
         return fileDictionary.Values;
     }
-    
-    
 }

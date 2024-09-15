@@ -1,9 +1,7 @@
-﻿using System.Net;
-using CourseWork.Application.FileDtoRequest;
+﻿using CourseWork.Application.FileDtoRequest;
 using CourseWork.Application.Services.FileService;
 using CourseWork.Domain.Entity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CourseWork.Controllers;
